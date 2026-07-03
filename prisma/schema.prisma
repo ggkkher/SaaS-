@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  company         Company?
+  offers          Offer[]
+}
+
+model Company {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  logoUrl         String?
+
+  hourlyRate      Float     @default(50)
+  profitMargin    Float     @default(20)
+  materialCost    Float     @default(0)
+  fixedCosts      Float     @default(2000)
+  taxRate         Float     @default(0.19)
+
+  stripeCustomerId String?
+  subscriptionTier String @default("free")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Offer {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  clientName      String
+  clientEmail     String?
+
+  positions       Position[]
+  amendments      Amendment[]
+
+  subtotalNet     Float
+  taxAmount       Float
+  totalGross      Float
+
+  status          String    @default("draft")
+  signatureUrl    String?
+  signaturePdfUrl String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  validUntil      DateTime
+}
+
+model Position {
+  id              String    @id @default(cuid())
+  offerId         String?
+  offer           Offer?    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  amendmentId     String?
+  amendment       Amendment? @relation(fields: [amendmentId], references: [id], onDelete: Cascade)
+
+  name            String
+  description     String    @db.Text
+
+  quantity        Float
+  unit            String
+
+  unitPrice       Float
+  totalNet        Float
+
+  hours           Float?
+  hourlyRate      Float?
+
+  order           Int
+  createdAt       DateTime  @default(now())
+}
+
+model Amendment {
+  id              String    @id @default(cuid())
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  amendmentNumber Int
+
+  positions       Position[]
+
+  additionalNet   Float
+  additionalTax   Float
+  additionalGross Float
+
+  status          String    @default("draft")
+  signatureUrl    String?
+  signaturePdfUrl String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
