@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import Button from '@/components/ui/Button';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, Copy } from 'lucide-react';
 import { formatCurrency, calculateDays } from '@/lib/calculations';
 
 interface Offer {
@@ -24,6 +24,7 @@ export default function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOffers();
@@ -51,6 +52,19 @@ export default function OffersPage() {
       setOffers(offers.filter((o) => o.id !== id));
     } catch (err: any) {
       setError(err.response?.data?.error || 'Löschung fehlgeschlagen');
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      setDuplicatingId(id);
+      const response = await axios.post(`/api/offers/${id}/duplicate`);
+      setOffers([response.data.offer, ...offers]);
+      setError('');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Angebot konnte nicht dupliziert werden');
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -176,6 +190,14 @@ export default function OffersPage() {
                           <Eye className="w-4 h-4" />
                         </Button>
                       </Link>
+                      <button
+                        onClick={() => handleDuplicate(offer.id)}
+                        disabled={duplicatingId === offer.id}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
+                        title="Angebot duplizieren"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDelete(offer.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
