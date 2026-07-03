@@ -50,7 +50,10 @@ export default function DashboardLayout({
               Kunden
             </Link>
             <Link href="/position-templates" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
-              Vorlagen
+              Positionen
+            </Link>
+            <Link href="/offer-templates" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
+              Angebots-Templates
             </Link>
             <Link href="/profile/company" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
               Profil
@@ -105,7 +108,13 @@ export default function DashboardLayout({
                 href="/position-templates"
                 className="py-2 px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                Vorlagen
+                Positionen
+              </Link>
+              <Link
+                href="/offer-templates"
+                className="py-2 px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Angebots-Templates
               </Link>
               <Link
                 href="/profile/company"

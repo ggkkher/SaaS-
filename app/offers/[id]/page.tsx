@@ -81,6 +81,12 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [positionTemplates, setPositionTemplates] = useState<PositionTemplate[]>([]);
+  const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  const [templateForm, setTemplateForm] = useState({
+    templateName: '',
+    description: '',
+  });
 
   useEffect(() => {
     fetchOffer();
@@ -267,6 +273,28 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     navigator.clipboard.writeText(portalUrl);
     setCopiedToClipboard(true);
     setTimeout(() => setCopiedToClipboard(false), 2000);
+  };
+
+  const handleSaveAsTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!templateForm.templateName.trim()) {
+      setError('Template-Name erforderlich');
+      return;
+    }
+
+    try {
+      setIsSavingTemplate(true);
+      await axios.post(`/api/offers/${params.id}/save-as-template`, templateForm);
+      setError('');
+      setShowSaveAsTemplateModal(false);
+      setTemplateForm({ templateName: '', description: '' });
+      alert('Template erfolgreich gespeichert!');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Fehler beim Speichern des Templates');
+    } finally {
+      setIsSavingTemplate(false);
+    }
   };
 
   const getAISuggestion = async () => {
@@ -789,6 +817,15 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
               {isGenerating ? '⏳ Generiert...' : '📤 Teilen'}
             </Button>
 
+            <Button
+              onClick={() => setShowSaveAsTemplateModal(true)}
+              variant="outline"
+              size="lg"
+              className="w-full mb-3"
+            >
+              💾 Als Template speichern
+            </Button>
+
             {!offer.clientEmail && (
               <p className="text-sm text-gray-500 text-center">
                 Bitte Kunden-Email hinzufügen
@@ -797,6 +834,67 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       </div>
+
+      {/* Save as Template Modal */}
+      {showSaveAsTemplateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Als Template speichern</h2>
+              <button
+                onClick={() => setShowSaveAsTemplateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAsTemplate} className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Template-Name *
+                </label>
+                <Input
+                  value={templateForm.templateName}
+                  onChange={(e) =>
+                    setTemplateForm({ ...templateForm, templateName: e.target.value })
+                  }
+                  placeholder="z.B. Standardangebot"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Beschreibung
+                </label>
+                <textarea
+                  value={templateForm.description}
+                  onChange={(e) =>
+                    setTemplateForm({ ...templateForm, description: e.target.value })
+                  }
+                  placeholder="Wofür ist dieses Template?"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="submit" variant="primary" className="flex-1" isLoading={isSavingTemplate}>
+                  Speichern
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowSaveAsTemplateModal(false)}
+                >
+                  Abbrechen
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Share Modal */}
       {showShareModal && shareToken && (

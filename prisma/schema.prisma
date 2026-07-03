@@ -18,6 +18,7 @@ model User {
   offers          Offer[]
   customers       Customer[]
   positionTemplates PositionTemplate[]
+  offerTemplates  OfferTemplate[]
 }
 
 model Company {
@@ -147,6 +148,42 @@ model PositionTemplate {
   updatedAt       DateTime  @updatedAt
 
   @@index([userId])
+}
+
+model OfferTemplate {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String    // Template name (e.g. "Standardangebot")
+  description     String?   // What this template is for
+
+  positions       OfferTemplatePosition[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model OfferTemplatePosition {
+  id              String    @id @default(cuid())
+  templateId      String
+  template        OfferTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  name            String
+  description     String
+
+  quantity        Float
+  unit            String
+
+  unitPrice       Float?
+  hours           Float?
+  hourlyRate      Float?
+
+  order           Int
+
+  @@index([templateId])
 }
 
 model OfferShareToken {
