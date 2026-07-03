@@ -23,6 +23,7 @@
     "nodemailer": "^6.9.0",
     "openai": "^4.24.0",
     "pdfkit": "^0.13.0",
+    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "stripe": "^14.0.0",

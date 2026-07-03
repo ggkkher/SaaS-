@@ -3,6 +3,7 @@ import { verifyToken } from '@/lib/auth';
 
 const protectedRoutes = ['/dashboard', '/offers', '/profile'];
 const authRoutes = ['/login', '/register'];
+const publicRoutes = ['/offers/*/sign']; // Allow public access to signature pages
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value;

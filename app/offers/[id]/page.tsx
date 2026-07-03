@@ -391,8 +391,22 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
               <p>Status: {offer.status}</p>
             </div>
 
-            <Button variant="primary" size="lg" className="w-full mb-3">
-              Als PDF exportieren
+            <Button
+              onClick={() => window.open(`/api/offers/${offer.id}/pdf`, '_blank')}
+              variant="primary"
+              size="lg"
+              className="w-full mb-3"
+            >
+              📥 PDF herunterladen
+            </Button>
+
+            <Button
+              onClick={() => window.open(`/offers/${offer.id}/sign`, '_blank')}
+              variant="outline"
+              size="lg"
+              className="w-full mb-3"
+            >
+              ✍️ Unterschrifts-Link
             </Button>
           </div>
         </div>
