@@ -16,6 +16,8 @@ interface Offer {
   status: string;
   createdAt: string;
   validUntil: string;
+  parentOfferId?: string;
+  amendmentNumber?: number;
 }
 
 export default function OffersPage() {
@@ -138,7 +140,14 @@ export default function OffersPage() {
                 <tr key={offer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div>
-                      <p className="font-medium text-gray-900">{offer.clientName}</p>
+                      <p className="font-medium text-gray-900">
+                        {offer.amendmentNumber && offer.parentOfferId ? (
+                          <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
+                            📋 {offer.amendmentNumber}. Nachtrag
+                          </span>
+                        ) : null}
+                        {offer.clientName}
+                      </p>
                       {offer.clientEmail && (
                         <p className="text-sm text-gray-600">{offer.clientEmail}</p>
                       )}

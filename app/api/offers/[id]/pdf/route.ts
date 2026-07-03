@@ -64,6 +64,8 @@ export async function GET(
       companyName: company.name,
       companyLogo: company.logoUrl || undefined,
       createdAt: offer.createdAt.toISOString(),
+      amendmentNumber: offer.amendmentNumber || undefined,
+      parentOfferId: offer.parentOfferId || undefined,
     });
 
     return new NextResponse(pdfBuffer, {

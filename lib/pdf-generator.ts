@@ -22,6 +22,8 @@ interface OfferData {
   companyName: string;
   companyLogo?: string;
   createdAt: string;
+  amendmentNumber?: number;
+  parentOfferId?: string;
 }
 
 export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
@@ -61,9 +63,32 @@ export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
         .text(offer.companyName, 50, y);
 
       y += 25;
+
+      // Nachtrag Label wenn applicable
+      if (offer.amendmentNumber && offer.parentOfferId) {
+        doc
+          .fontSize(10)
+          .font('Helvetica-Bold')
+          .fillColor('#2E7D32')
+          .text(
+            `📋 ${offer.amendmentNumber}. Nachtrag`,
+            50,
+            y
+          );
+        y += 5;
+        doc.fontSize(9).fillColor('#666666');
+        doc.text(
+          `Zu Angebot #${offer.parentOfferId.substring(0, 8).toUpperCase()}`,
+          50,
+          y
+        );
+        y += 10;
+      }
+
       doc
         .fontSize(10)
         .font('Helvetica')
+        .fillColor('#000000')
         .text(`Angebot #${offer.id.substring(0, 8).toUpperCase()}`, 50, y);
 
       y += 5;

@@ -31,6 +31,9 @@ interface Offer {
   totalGross: number;
   validUntil: string;
   positions: Position[];
+  parentOfferId?: string;
+  amendmentType?: string;
+  amendmentNumber?: number;
 }
 
 export default function OfferDetailPage({ params }: { params: { id: string } }) {
@@ -51,6 +54,9 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     hours: '',
     hourlyRate: '',
   });
+  const [amendments, setAmendments] = useState<Offer[]>([]);
+  const [showAmendmentForm, setShowAmendmentForm] = useState(false);
+  const [isCreatingAmendment, setIsCreatingAmendment] = useState(false);
 
   useEffect(() => {
     fetchOffer();
@@ -61,10 +67,24 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
       setIsLoading(true);
       const response = await axios.get(`/api/offers/${params.id}`);
       setOffer(response.data.offer);
+
+      // Fetch amendments if this is not a nachtrag
+      if (!response.data.offer.parentOfferId) {
+        fetchAmendments();
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Angebot konnte nicht geladen werden');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAmendments = async () => {
+    try {
+      const response = await axios.get(`/api/offers/${params.id}/amendments`);
+      setAmendments(response.data.amendments);
+    } catch (err: any) {
+      console.error('Error fetching amendments:', err);
     }
   };
 
@@ -140,6 +160,22 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     setShowPositionForm(true);
   };
 
+  const handleCreateAmendment = async () => {
+    if (!offer || offer.parentOfferId || offer.amendmentType === 'amendment') {
+      setError('Nachträge können nur für Angebote ohne Parent erstellt werden');
+      return;
+    }
+
+    try {
+      setIsCreatingAmendment(true);
+      const response = await axios.post(`/api/offers/${params.id}/amendments`);
+      router.push(`/offers/${response.data.amendment.id}`);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Nachtrag konnte nicht erstellt werden');
+      setIsCreatingAmendment(false);
+    }
+  };
+
   const calculateTotals = () => {
     if (!offer) return { subtotalNet: 0, taxAmount: 0, totalGross: 0 };
 
@@ -182,6 +218,20 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow p-8 mb-6">
             <div className="mb-6">
+              {offer.parentOfferId && offer.amendmentNumber && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-900">
+                    <strong>📋 {offer.amendmentNumber}. Nachtrag</strong> zu Angebot{' '}
+                    <button
+                      onClick={() => router.push(`/offers/${offer.parentOfferId}`)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      #{offer.parentOfferId.substring(0, 8).toUpperCase()}
+                    </button>
+                  </p>
+                </div>
+              )}
+
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 Angebot für {offer.clientName}
               </h1>
@@ -358,6 +408,52 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
                 </Button>
               )}
             </div>
+
+            {/* Amendments Section */}
+            {!offer.parentOfferId && (
+              <div className="border-t pt-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Nachträge ({amendments.length})
+                  </h2>
+                  <Button
+                    onClick={handleCreateAmendment}
+                    variant="primary"
+                    size="sm"
+                    isLoading={isCreatingAmendment}
+                  >
+                    ➕ Nachtrag hinzufügen
+                  </Button>
+                </div>
+
+                {amendments.length === 0 ? (
+                  <p className="text-gray-600">Noch keine Nachträge erstellt</p>
+                ) : (
+                  <div className="space-y-2">
+                    {amendments.map((amendment) => (
+                      <div
+                        key={amendment.id}
+                        className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {amendment.amendmentNumber}. Nachtrag
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {formatCurrency(amendment.totalGross)} • Status: {amendment.status}
+                          </p>
+                        </div>
+                        <Link href={`/offers/${amendment.id}`}>
+                          <Button variant="outline" size="sm">
+                            Öffnen
+                          </Button>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

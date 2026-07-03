@@ -48,7 +48,6 @@ model Offer {
   clientEmail     String?
 
   positions       Position[]
-  amendments      Amendment[]
 
   subtotalNet     Float
   taxAmount       Float
@@ -58,6 +57,13 @@ model Offer {
   signatureUrl    String?
   signaturePdfUrl String?
 
+  // Für Nachträge
+  parentOfferId   String?
+  parentOffer     Offer?    @relation("OfferAmendments", fields: [parentOfferId], references: [id], onDelete: SetNull)
+  amendments      Offer[]   @relation("OfferAmendments")
+  amendmentType   String?   // "amendment" oder null für original
+  amendmentNumber Int?      // 1. Nachtrag, 2. Nachtrag, etc.
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   validUntil      DateTime
@@ -65,11 +71,8 @@ model Offer {
 
 model Position {
   id              String    @id @default(cuid())
-  offerId         String?
-  offer           Offer?    @relation(fields: [offerId], references: [id], onDelete: Cascade)
-
-  amendmentId     String?
-  amendment       Amendment? @relation(fields: [amendmentId], references: [id], onDelete: Cascade)
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
 
   name            String
   description     String    @db.Text
@@ -87,23 +90,3 @@ model Position {
   createdAt       DateTime  @default(now())
 }
 
-model Amendment {
-  id              String    @id @default(cuid())
-  offerId         String
-  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
-
-  amendmentNumber Int
-
-  positions       Position[]
-
-  additionalNet   Float
-  additionalTax   Float
-  additionalGross Float
-
-  status          String    @default("draft")
-  signatureUrl    String?
-  signaturePdfUrl String?
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
