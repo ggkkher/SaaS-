@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
-import { generateOfferPDF } from '@/lib/pdf-generator';
+import { generateOfferHTML } from '@/lib/pdf-html-generator';
+import { generatePDFWithPDFShift } from '@/lib/pdfshift-client';
 
 export async function GET(
   request: NextRequest,
@@ -52,7 +53,7 @@ export async function GET(
       );
     }
 
-    const pdfBuffer = await generateOfferPDF({
+    const htmlContent = generateOfferHTML({
       id: offer.id,
       clientName: offer.clientName,
       clientEmail: offer.clientEmail || undefined,
@@ -67,6 +68,9 @@ export async function GET(
       amendmentNumber: offer.amendmentNumber || undefined,
       parentOfferId: offer.parentOfferId || undefined,
     });
+
+    const filename = `Angebot_${offer.id.substring(0, 8)}_${offer.clientName.replace(/\s+/g, '_')}.pdf`;
+    const pdfBuffer = await generatePDFWithPDFShift(htmlContent, filename);
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
