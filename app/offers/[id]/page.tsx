@@ -87,6 +87,7 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     templateName: '',
     description: '',
   });
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   useEffect(() => {
     fetchOffer();
@@ -294,6 +295,31 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
       setError(err.response?.data?.error || 'Fehler beim Speichern des Templates');
     } finally {
       setIsSavingTemplate(false);
+    }
+  };
+
+  const handleVoiceTranscript = async (transcript: string) => {
+    setIsProcessingVoice(true);
+
+    try {
+      const response = await axios.post(
+        `/api/offers/${params.id}/voice-to-quote`,
+        { transcript }
+      );
+
+      if (response.data.positions) {
+        await fetchOffer();
+        setError('');
+        alert(`✅ ${response.data.positions.length} Positionen hinzugefügt!`);
+      }
+    } catch (err: any) {
+      setError(
+        err.response?.data?.error ||
+          'Fehler beim Verarbeiten der Diktation'
+      );
+      console.error('Voice-to-quote error:', err);
+    } finally {
+      setIsProcessingVoice(false);
     }
   };
 
@@ -690,13 +716,29 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
               )}
 
               {!showPositionForm && (
-                <Button
-                  onClick={() => setShowPositionForm(true)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" /> Position hinzufügen
-                </Button>
+                <>
+                  <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <p className="text-sm font-semibold text-purple-900 mb-3">
+                      🎤 Voice-to-Quote (KI-gestützte Diktation)
+                    </p>
+                    <p className="text-xs text-purple-700 mb-3">
+                      Sprechen Sie die Positionen, und die KI erstellt sie automatisch für Sie. Z.B.: "Rasen 200 Quadratmeter, Hecke schneiden 50 Meter, zwei Blumenbeete à 10 Quadratmeter"
+                    </p>
+                    <AudioInput
+                      onTranscribe={handleVoiceTranscript}
+                      placeholder="Diktation wird mit KI verarbeitet..."
+                      disabled={isProcessingVoice}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={() => setShowPositionForm(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Position manuell hinzufügen
+                  </Button>
+                </>
               )}
             </div>
 
