@@ -2,158 +2,194 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { formatCurrency } from '@/lib/calculations';
+import { ArrowRight, Lock } from 'lucide-react';
 import Link from 'next/link';
-import Button from '@/components/ui/Button';
 
 interface Offer {
   id: string;
   clientName: string;
   status: string;
-  totalGross: number;
   subtotalNet: number;
   taxAmount: number;
-  signedAt?: string;
+  totalGross: number;
   createdAt: string;
-  positions: Array<{ id: string; name: string }>;
+  validUntil: string;
+  signatureUrl?: string;
 }
 
-export default function PortalPage({ params }: { params: { shareToken: string } }) {
-  const [offers, setOffers] = useState<Offer[]>([]);
+interface ShareData {
+  clientEmail?: string;
+  offers: Offer[];
+}
+
+export default function PortalListPage({ params }: { params: { shareToken: string } }) {
+  const [shareData, setShareData] = useState<ShareData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchOffers();
+    fetchPortalData();
   }, [params.shareToken]);
 
-  const fetchOffers = async () => {
+  const fetchPortalData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`/api/portal/${params.shareToken}`);
-      setOffers(response.data.offers);
+      const response = await axios.get(
+        `/api/portal/${params.shareToken}/offers`
+      );
+      setShareData(response.data);
     } catch (err: any) {
       setError(
-        err.response?.data?.error || 'Angebote konnten nicht geladen werden'
+        err.response?.data?.error ||
+          'Fehler beim Laden der Angebote'
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      draft: 'bg-gray-200 text-gray-800',
-      sent: 'bg-blue-200 text-blue-800',
-      signed: 'bg-green-200 text-green-800',
-      accepted: 'bg-emerald-200 text-emerald-800',
-    };
-    return statusMap[status] || statusMap.draft;
-  };
-
-  const getStatusText = (status: string) => {
-    const textMap: { [key: string]: string } = {
-      draft: 'Entwurf',
-      sent: 'Versendet',
-      signed: 'Unterzeichnet',
-      accepted: 'Akzeptiert',
-    };
-    return textMap[status] || status;
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Lädt...</p>
-      </div>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="container mx-auto max-w-4xl py-8">
+          <p className="text-center text-gray-600">Lädt...</p>
+        </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md">
-          <p className="text-red-600 font-medium mb-2">Fehler</p>
-          <p className="text-red-600 text-sm">{error}</p>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="container mx-auto max-w-4xl py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 font-semibold">❌ Fehler</p>
+            <p className="text-red-600 text-sm mt-2">{error}</p>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
-  if (offers.length === 0) {
+  if (!shareData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Keine Angebote gefunden</p>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="container mx-auto max-w-4xl py-8">
+          <p className="text-center text-gray-600">Keine Angebote gefunden</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Ihre Angebote</h1>
-          <p className="text-gray-600 mt-2">
-            Übersicht aller Angebote und deren Status
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="container mx-auto max-w-4xl py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <span className="text-3xl">🌿</span>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Ihre Angebote
+          </h1>
+          <p className="text-gray-600">
+            Sehen Sie sich Ihre Angebote an, unterschreiben Sie diese oder laden Sie diese herunter
           </p>
         </div>
 
+        {/* Offers List */}
         <div className="space-y-4">
-          {offers.map((offer) => (
-            <div
-              key={offer.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {offer.clientName}
-                      </h3>
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(
-                          offer.status
-                        )}`}
-                      >
-                        {getStatusText(offer.status)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Erstellt:{' '}
-                      {new Date(offer.createdAt).toLocaleDateString('de-DE')}
-                    </p>
-                    {offer.signedAt && (
-                      <p className="text-sm text-green-600">
-                        Unterzeichnet:{' '}
-                        {new Date(offer.signedAt).toLocaleDateString('de-DE')}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">
-                      €{offer.totalGross.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {offer.positions.length} Position
-                      {offer.positions.length !== 1 ? 'en' : ''}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Link href={`/portal/${params.shareToken}/offers/${offer.id}`}>
-                    <Button variant="primary" size="sm">
-                      Details ansehen
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+          {shareData.offers.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-8 text-center">
+              <p className="text-gray-600">Noch keine Angebote verfügbar</p>
             </div>
-          ))}
+          ) : (
+            shareData.offers.map((offer) => {
+              const statusLabels: { [key: string]: string } = {
+                draft: '📝 Entwurf',
+                sent: '📧 Versendet',
+                signed: '✅ Unterschrieben',
+                accepted: '✅ Akzeptiert',
+              };
+
+              const statusColors: { [key: string]: string } = {
+                draft: 'bg-gray-100 text-gray-700',
+                sent: 'bg-blue-100 text-blue-700',
+                signed: 'bg-green-100 text-green-700',
+                accepted: 'bg-green-100 text-green-700',
+              };
+
+              return (
+                <div
+                  key={offer.id}
+                  className="bg-white rounded-lg shadow hover:shadow-md transition p-6"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        Angebot #{offer.id.substring(0, 8).toUpperCase()}
+                      </h3>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>
+                          Erstellt: {new Date(offer.createdAt).toLocaleDateString('de-DE')}
+                        </p>
+                        <p>
+                          Gültig bis: {new Date(offer.validUntil).toLocaleDateString('de-DE')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 md:text-right">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium w-fit md:ml-auto ${
+                          statusColors[offer.status] || 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {statusLabels[offer.status] || offer.status}
+                      </span>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {formatCurrency(offer.totalGross)}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Inkl. MwSt ({formatCurrency(offer.taxAmount)})
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex flex-col md:flex-row gap-2">
+                    <Link
+                      href={`/portal/${params.shareToken}/offers/${offer.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+                    >
+                      Details ansehen <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <a
+                      href={`/api/portal/${params.shareToken}/offers/${offer.id}/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition"
+                    >
+                      📥 PDF
+                    </a>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-gray-600">
+          <p>
+            <Lock className="w-4 h-4 inline mr-2" />
+            Sicherheit: Diese Seite ist mit einem privaten Link geschützt
+          </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
