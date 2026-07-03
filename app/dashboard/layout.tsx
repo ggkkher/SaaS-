@@ -46,6 +46,12 @@ export default function DashboardLayout({
             <Link href="/offers" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
               Angebote
             </Link>
+            <Link href="/customers" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
+              Kunden
+            </Link>
+            <Link href="/position-templates" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
+              Vorlagen
+            </Link>
             <Link href="/profile/company" className="text-gray-700 dark:text-gray-300 hover:text-primary-light transition">
               Profil
             </Link>
@@ -88,6 +94,18 @@ export default function DashboardLayout({
                 className="py-2 px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 Angebote
+              </Link>
+              <Link
+                href="/customers"
+                className="py-2 px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Kunden
+              </Link>
+              <Link
+                href="/position-templates"
+                className="py-2 px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Vorlagen
               </Link>
               <Link
                 href="/profile/company"

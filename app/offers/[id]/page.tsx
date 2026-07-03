@@ -24,6 +24,17 @@ interface Position {
   order: number;
 }
 
+interface PositionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPrice?: number;
+  hours?: number;
+  hourlyRate?: number;
+}
+
 interface Offer {
   id: string;
   clientName: string;
@@ -69,9 +80,11 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
   const [showShareModal, setShowShareModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [positionTemplates, setPositionTemplates] = useState<PositionTemplate[]>([]);
 
   useEffect(() => {
     fetchOffer();
+    fetchPositionTemplates();
   }, []);
 
   const fetchOffer = async () => {
@@ -97,6 +110,35 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
       setAmendments(response.data.amendments);
     } catch (err: any) {
       console.error('Error fetching amendments:', err);
+    }
+  };
+
+  const fetchPositionTemplates = async () => {
+    try {
+      const response = await axios.get('/api/position-templates');
+      setPositionTemplates(response.data.templates);
+    } catch (err: any) {
+      console.error('Error fetching position templates:', err);
+    }
+  };
+
+  const handleAddTemplatePosition = async (template: PositionTemplate) => {
+    try {
+      setIsSaving(true);
+      await axios.post(`/api/offers/${params.id}/positions`, {
+        name: template.name,
+        description: template.description,
+        quantity: template.quantity,
+        unit: template.unit,
+        unitPrice: template.unitPrice || '',
+        hours: template.hours || '',
+        hourlyRate: template.hourlyRate || '',
+      });
+      await fetchOffer();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Fehler beim Hinzufügen der Position');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -592,6 +634,31 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
                     </Button>
                   </div>
                 </form>
+              )}
+
+              {/* Quick Positions */}
+              {positionTemplates.length > 0 && !showPositionForm && (
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-semibold text-green-900 mb-3">
+                    ⚡ Schnell-Positionen (Vorlagen)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {positionTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => handleAddTemplatePosition(template)}
+                        disabled={isSaving}
+                        className="px-3 py-2 bg-green-100 hover:bg-green-200 disabled:bg-gray-100 text-green-900 text-sm font-medium rounded-lg transition"
+                        title={template.description}
+                      >
+                        + {template.name}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-green-700 mt-2">
+                    💡 <Link href="/position-templates" className="underline">Verwalte deine Vorlagen</Link>
+                  </p>
+                </div>
               )}
 
               {!showPositionForm && (

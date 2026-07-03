@@ -17,6 +17,7 @@ model User {
   company         Company?
   offers          Offer[]
   customers       Customer[]
+  positionTemplates PositionTemplate[]
 }
 
 model Company {
@@ -125,6 +126,27 @@ model Position {
 
   order           Int
   createdAt       DateTime  @default(now())
+}
+
+model PositionTemplate {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  description     String
+
+  quantity        Float    @default(1)
+  unit            String   @default("m²")
+
+  unitPrice       Float?
+  hours           Float?
+  hourlyRate      Float?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
 }
 
 model OfferShareToken {
