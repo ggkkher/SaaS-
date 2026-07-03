@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import AudioInput from '@/components/ui/AudioInput';
 import { formatCurrency, calculateOfferTotals } from '@/lib/calculations';
 import { Trash2, Plus, Edit2 } from 'lucide-react';
 
@@ -313,61 +314,136 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
                   </h3>
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
-                    <Input
-                      label="Position"
-                      placeholder="z.B. Rasenanlage"
-                      value={positionForm.name}
-                      onChange={(e) =>
-                        setPositionForm({ ...positionForm, name: e.target.value })
-                      }
-                    />
-                    <Input
-                      label="Menge"
-                      type="number"
-                      step="0.1"
-                      value={positionForm.quantity}
-                      onChange={(e) =>
-                        setPositionForm({
-                          ...positionForm,
-                          quantity: e.target.value,
-                        })
-                      }
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Position
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="z.B. Rasenanlage"
+                          value={positionForm.name}
+                          onChange={(e) =>
+                            setPositionForm({ ...positionForm, name: e.target.value })
+                          }
+                          className="flex-1"
+                        />
+                        <AudioInput
+                          onTranscribe={(text) =>
+                            setPositionForm({ ...positionForm, name: text })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Menge
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={positionForm.quantity}
+                          onChange={(e) =>
+                            setPositionForm({
+                              ...positionForm,
+                              quantity: e.target.value,
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        <AudioInput
+                          onTranscribe={(text) => {
+                            const num = parseFloat(text.replace(/,/g, '.'));
+                            if (!isNaN(num)) {
+                              setPositionForm({
+                                ...positionForm,
+                                quantity: num.toString(),
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <Input
-                    label="Beschreibung"
-                    placeholder="z.B. Ansaat und Düngung"
-                    value={positionForm.description}
-                    onChange={(e) =>
-                      setPositionForm({
-                        ...positionForm,
-                        description: e.target.value,
-                      })
-                    }
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Beschreibung
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="z.B. Ansaat und Düngung"
+                        value={positionForm.description}
+                        onChange={(e) =>
+                          setPositionForm({
+                            ...positionForm,
+                            description: e.target.value,
+                          })
+                        }
+                        className="flex-1"
+                      />
+                      <AudioInput
+                        onTranscribe={(text) =>
+                          setPositionForm({
+                            ...positionForm,
+                            description: text,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
-                    <Input
-                      label="Einheit"
-                      placeholder="m², h, Stück"
-                      value={positionForm.unit}
-                      onChange={(e) =>
-                        setPositionForm({ ...positionForm, unit: e.target.value })
-                      }
-                    />
-                    <Input
-                      label="Einheitspreis (€)"
-                      type="number"
-                      step="0.01"
-                      value={positionForm.unitPrice}
-                      onChange={(e) =>
-                        setPositionForm({
-                          ...positionForm,
-                          unitPrice: e.target.value,
-                        })
-                      }
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Einheit
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="m², h, Stück"
+                          value={positionForm.unit}
+                          onChange={(e) =>
+                            setPositionForm({ ...positionForm, unit: e.target.value })
+                          }
+                          className="flex-1"
+                        />
+                        <AudioInput
+                          onTranscribe={(text) =>
+                            setPositionForm({ ...positionForm, unit: text })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Einheitspreis (€)
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={positionForm.unitPrice}
+                          onChange={(e) =>
+                            setPositionForm({
+                              ...positionForm,
+                              unitPrice: e.target.value,
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        <AudioInput
+                          onTranscribe={(text) => {
+                            const num = parseFloat(text.replace(/,/g, '.'));
+                            if (!isNaN(num)) {
+                              setPositionForm({
+                                ...positionForm,
+                                unitPrice: num.toString(),
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
