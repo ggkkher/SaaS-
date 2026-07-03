@@ -81,6 +81,7 @@ model Offer {
 
   positions       Position[]
   shareTokens     OfferShareToken[]
+  emailTrackings  EmailTracking[]
 
   subtotalNet     Float
   taxAmount       Float
@@ -202,5 +203,24 @@ model OfferShareToken {
 
   @@index([token])
   @@index([offerId])
+}
+
+model EmailTracking {
+  id              String    @id @default(cuid())
+  pixelId         String    @unique              // Eindeutige ID für Tracking-Pixel
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  email           String                        // Empfänger E-Mail
+  sentAt          DateTime  @default(now())
+  openedAt        DateTime?                      // Wann wurde E-Mail geöffnet (via Pixel)
+  linkClicks      Int       @default(0)          // Anzahl Link-Klicks
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([offerId])
+  @@index([email])
+  @@index([pixelId])
 }
 

@@ -7,6 +7,7 @@ import axios from 'axios';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import AudioInput from '@/components/ui/AudioInput';
+import EmailTrackingStatus from '@/components/ui/EmailTrackingStatus';
 import { formatCurrency, calculateOfferTotals } from '@/lib/calculations';
 import { getPortalUrl } from '@/lib/share-tokens';
 import { Trash2, Plus, Edit2, X, Copy, Check } from 'lucide-react';
@@ -848,6 +849,8 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
             >
               📧 Per Email versenden
             </Button>
+
+            <EmailTrackingStatus offerId={offer.id} />
 
             <Button
               onClick={handleGenerateShareToken}

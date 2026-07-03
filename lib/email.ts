@@ -10,7 +10,8 @@ export async function sendOfferEmail(
   totalGross: number,
   signatureUrl: string,
   pdfUrl: string,
-  portalUrl?: string
+  portalUrl?: string,
+  pixelId?: string
 ) {
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('test')) {
     console.log('Email would be sent to:', clientEmail);
@@ -29,7 +30,8 @@ export async function sendOfferEmail(
         totalGross,
         signatureUrl,
         pdfUrl,
-        portalUrl
+        portalUrl,
+        pixelId
       ),
     });
 
@@ -77,7 +79,8 @@ function generateOfferEmailHTML(
   totalGross: number,
   signatureUrl: string,
   pdfUrl: string,
-  portalUrl?: string
+  portalUrl?: string,
+  pixelId?: string
 ): string {
   return `
 <!DOCTYPE html>
@@ -243,6 +246,7 @@ function generateOfferEmailHTML(
             </div>
         </div>
     </div>
+    ${pixelId ? `<img src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/email/track?pixelId=${pixelId}" width="1" height="1" alt="" style="display:none;">` : ''}
 </body>
 </html>
   `;

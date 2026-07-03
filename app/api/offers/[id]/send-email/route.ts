@@ -67,6 +67,15 @@ export async function POST(
     const shareToken = await getOrCreateShareToken(params.id, offer.clientEmail);
     const portalUrl = `${origin}${getPortalUrl(shareToken, params.id)}`;
 
+    // Create email tracking record
+    const emailTracking = await prisma.emailTracking.create({
+      data: {
+        pixelId: `${params.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        offerId: params.id,
+        email: offer.clientEmail,
+      },
+    });
+
     // Sende Email
     await sendOfferEmail(
       offer.clientEmail,
@@ -76,7 +85,8 @@ export async function POST(
       offer.totalGross,
       signatureUrl,
       pdfUrl,
-      portalUrl
+      portalUrl,
+      emailTracking.pixelId
     );
 
     // Update offer mit sentAt und sentBy timestamps
