@@ -68,7 +68,7 @@ export async function GET(
       parentOfferId: offer.parentOfferId || undefined,
     });
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="Angebot_${offer.id.substring(0, 8)}_${offer.clientName.replace(/\s+/g, '_')}.pdf"`,

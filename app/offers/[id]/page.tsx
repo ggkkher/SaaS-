@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Input from '@/components/ui/Input';
@@ -55,7 +56,6 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     hourlyRate: '',
   });
   const [amendments, setAmendments] = useState<Offer[]>([]);
-  const [showAmendmentForm, setShowAmendmentForm] = useState(false);
   const [isCreatingAmendment, setIsCreatingAmendment] = useState(false);
 
   useEffect(() => {

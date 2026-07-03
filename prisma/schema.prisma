@@ -34,6 +34,11 @@ model Company {
 
   stripeCustomerId String?
   subscriptionTier String @default("free")
+  stripePriceId    String?
+  stripeSubscriptionId String?
+
+  offersCreatedThisMonth Int @default(0)
+  monthlyResetDate DateTime?
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

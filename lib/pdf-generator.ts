@@ -121,7 +121,6 @@ export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
 
       // Positions Table
       y += 30;
-      const tableTop = y;
       const col1 = 50;
       const col2 = 320;
       const col3 = 410;
@@ -145,7 +144,7 @@ export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
       // Positions
       doc.font('Helvetica').fontSize(9).fillColor('#000000');
 
-      offer.positions.forEach((position, index) => {
+      offer.positions.forEach((position) => {
         if (y > 700) {
           doc.addPage();
           y = 50;

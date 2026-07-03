@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { useAuthStore } from '@/lib/store';
-import Button from '@/components/ui/Button';
-import { Menu, LogOut, Settings } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 export default function DashboardLayout({

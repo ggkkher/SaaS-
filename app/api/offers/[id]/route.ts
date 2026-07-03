@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
-import { calculateOfferTotals } from '@/lib/calculations';
 
 export async function GET(
   request: NextRequest,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
-import { calculateOfferTotals, calculatePositionPrice } from '@/lib/calculations';
+import { canCreateOffer, incrementOfferCount } from '@/lib/quota';
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,6 +59,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const canCreate = await canCreateOffer(decoded.userId);
+    if (!canCreate) {
+      const company = await prisma.company.findUnique({
+        where: { userId: decoded.userId },
+      });
+      return NextResponse.json(
+        {
+          error: 'Kontingent für diesen Monat aufgebraucht',
+          quotaExceeded: true,
+          tier: company?.subscriptionTier || 'free'
+        },
+        { status: 429 }
+      );
+    }
+
     const { clientName, clientEmail } = await request.json();
 
     if (!clientName) {
@@ -83,6 +98,9 @@ export async function POST(request: NextRequest) {
       },
       include: { positions: true },
     });
+
+    // Increment offer count after successful creation
+    await incrementOfferCount(decoded.userId);
 
     return NextResponse.json(
       { offer, message: 'Angebot erstellt' },

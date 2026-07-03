@@ -70,7 +70,7 @@ export default function CompanySetupPage() {
     }));
   };
 
-  const handleFileSelect = (file: File | null, base64: string | null) => {
+  const handleFileSelect = (_file: File | null, base64: string | null) => {
     if (base64) {
       setLogo(base64);
       setLogoPreview(base64);
