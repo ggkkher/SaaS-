@@ -8,7 +8,8 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import AudioInput from '@/components/ui/AudioInput';
 import { formatCurrency, calculateOfferTotals } from '@/lib/calculations';
-import { Trash2, Plus, Edit2 } from 'lucide-react';
+import { getPortalUrl } from '@/lib/share-tokens';
+import { Trash2, Plus, Edit2, X, Copy, Check } from 'lucide-react';
 
 interface Position {
   id: string;
@@ -64,6 +65,10 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     suggestedPrice: number;
     reasoning: string;
   } | null>(null);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
   useEffect(() => {
     fetchOffer();
@@ -199,6 +204,27 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     } finally {
       setIsSendingEmail(false);
     }
+  };
+
+  const handleGenerateShareToken = async () => {
+    try {
+      setIsGenerating(true);
+      const response = await axios.post(`/api/offers/${params.id}/share-token`);
+      setShareToken(response.data.token);
+      setShowShareModal(true);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Fehler beim Generieren des Share-Links');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopyToClipboard = () => {
+    if (!shareToken) return;
+    const portalUrl = `${window.location.origin}${getPortalUrl(shareToken, params.id)}`;
+    navigator.clipboard.writeText(portalUrl);
+    setCopiedToClipboard(true);
+    setTimeout(() => setCopiedToClipboard(false), 2000);
   };
 
   const getAISuggestion = async () => {
@@ -686,6 +712,16 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
               📧 Per Email versenden
             </Button>
 
+            <Button
+              onClick={handleGenerateShareToken}
+              variant="secondary"
+              size="lg"
+              className="w-full mb-3"
+              disabled={isGenerating}
+            >
+              {isGenerating ? '⏳ Generiert...' : '📤 Teilen'}
+            </Button>
+
             {!offer.clientEmail && (
               <p className="text-sm text-gray-500 text-center">
                 Bitte Kunden-Email hinzufügen
@@ -694,6 +730,78 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && shareToken && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Angebot teilen</h2>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Kunden können das Angebot über diesen Link online ansehen und unterschreiben:
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}${getPortalUrl(shareToken, params.id)}`}
+                    className="flex-1 text-sm bg-white border border-gray-300 rounded px-3 py-2 font-mono text-gray-700"
+                  />
+                  <button
+                    onClick={handleCopyToClipboard}
+                    className="p-2 text-gray-600 hover:bg-white rounded transition"
+                  >
+                    {copiedToClipboard ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-900">
+                  <strong>💡 Tipp:</strong> Dieser Link wird automatisch in der E-Mail hinzugefügt, wenn Sie das Angebot versenden.
+                </p>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  QR-Code für Handy-Zugriff:
+                </h3>
+                <div className="flex justify-center">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}${getPortalUrl(shareToken, params.id)}`)}`}
+                    alt="QR Code"
+                    className="w-40 h-40 border border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full bg-primary-light text-white py-2 rounded-lg hover:bg-primary-dark transition"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

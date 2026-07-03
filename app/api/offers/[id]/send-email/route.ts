@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { sendOfferEmail } from '@/lib/email';
+import { getOrCreateShareToken, getPortalUrl } from '@/lib/share-tokens';
 
 export async function POST(
   request: NextRequest,
@@ -62,6 +63,10 @@ export async function POST(
     const signatureUrl = `${origin}/offers/${offer.id}/sign`;
     const pdfUrl = `${origin}/api/offers/${offer.id}/pdf`;
 
+    // Generate share token for portal access
+    const shareToken = await getOrCreateShareToken(params.id, offer.clientEmail);
+    const portalUrl = `${origin}${getPortalUrl(shareToken, params.id)}`;
+
     // Sende Email
     await sendOfferEmail(
       offer.clientEmail,
@@ -70,7 +75,8 @@ export async function POST(
       company.name,
       offer.totalGross,
       signatureUrl,
-      pdfUrl
+      pdfUrl,
+      portalUrl
     );
 
     // Update offer mit sentAt und sentBy timestamps

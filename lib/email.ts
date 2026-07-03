@@ -9,7 +9,8 @@ export async function sendOfferEmail(
   companyName: string,
   totalGross: number,
   signatureUrl: string,
-  pdfUrl: string
+  pdfUrl: string,
+  portalUrl?: string
 ) {
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('test')) {
     console.log('Email would be sent to:', clientEmail);
@@ -27,7 +28,8 @@ export async function sendOfferEmail(
         companyName,
         totalGross,
         signatureUrl,
-        pdfUrl
+        pdfUrl,
+        portalUrl
       ),
     });
 
@@ -74,7 +76,8 @@ function generateOfferEmailHTML(
   companyName: string,
   totalGross: number,
   signatureUrl: string,
-  pdfUrl: string
+  pdfUrl: string,
+  portalUrl?: string
 ): string {
   return `
 <!DOCTYPE html>
@@ -198,6 +201,28 @@ function generateOfferEmailHTML(
                     Gesamtbetrag: € ${totalGross.toFixed(2)}
                 </div>
             </div>
+
+            ${portalUrl ? `
+            <table cellpadding="0" cellspacing="0" style="width:100%; margin: 30px 0;">
+              <tr>
+                <td style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; border-radius: 8px; text-align: center;">
+                  <h2 style="color: white; margin: 0 0 12px 0; font-size: 20px;">
+                    🖊️ Online unterschreiben
+                  </h2>
+                  <p style="color: rgba(255,255,255,0.9); margin: 0 0 16px 0; font-size: 14px;">
+                    Schnell & einfach: Angebot online ansehen und unterschreiben
+                  </p>
+                  <a href="${portalUrl}" style="display: inline-block; background: white; color: #059669; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                    Jetzt unterschreiben →
+                  </a>
+                  <p style="color: rgba(255,255,255,0.8); margin: 16px 0 0 0; font-size: 12px;">
+                    Mit dem Handy scannen:
+                  </p>
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(portalUrl)}" style="width: 120px; height: 120px; margin-top: 12px;">
+                </td>
+              </tr>
+            </table>
+            ` : ''}
 
             <p style="margin: 20px 0;">
                 Sie können das Angebot jederzeit online unterzeichnen:
