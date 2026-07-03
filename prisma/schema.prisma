@@ -53,6 +53,7 @@ model Offer {
   clientEmail     String?
 
   positions       Position[]
+  shareTokens     OfferShareToken[]
 
   subtotalNet     Float
   taxAmount       Float
@@ -99,5 +100,23 @@ model Position {
 
   order           Int
   createdAt       DateTime  @default(now())
+}
+
+model OfferShareToken {
+  id              String    @id @default(cuid())
+  token           String    @unique              // Zufälliger Token für URL
+  offerId         String
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  clientEmail     String?                        // Optional: Pre-fill in form
+  expiresAt       DateTime?                      // Optional: Token verfällt
+  accessCount     Int       @default(0)          // Tracking wie oft angesehen
+  lastAccessedAt  DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([token])
+  @@index([offerId])
 }
 
