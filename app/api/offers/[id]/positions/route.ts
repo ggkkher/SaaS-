@@ -81,6 +81,24 @@ export async function POST(
       },
     });
 
+    // Update offer totals
+    const allPositions = await prisma.position.findMany({
+      where: { offerId: params.id },
+    });
+
+    const subtotalNet = allPositions.reduce((sum, pos) => sum + pos.totalNet, 0);
+    const taxAmount = subtotalNet * 0.19;
+    const totalGross = subtotalNet + taxAmount;
+
+    await prisma.offer.update({
+      where: { id: params.id },
+      data: {
+        subtotalNet,
+        taxAmount,
+        totalGross,
+      },
+    });
+
     return NextResponse.json(
       { position, message: 'Position hinzugefügt' },
       { status: 201 }

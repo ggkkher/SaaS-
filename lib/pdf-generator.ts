@@ -1,5 +1,4 @@
 import PDFDocument from 'pdfkit';
-import QRCode from 'qrcode';
 
 interface Position {
   name: string;
@@ -27,7 +26,7 @@ interface OfferData {
 }
 
 export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
         size: 'A4',
@@ -225,21 +224,10 @@ export async function generateOfferPDF(offer: OfferData): Promise<Buffer> {
       doc.fontSize(8).fillColor('#666666');
       doc.text('Hiermit akzeptiere ich das obige Angebot.', 50, y);
 
-      // QR Code für Signatur-Verifizierung
-      const qrCodeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/offers/${offer.id}/sign`;
-
-      try {
-        const qrDataUrl = await QRCode.toDataURL(qrCodeUrl, {
-          errorCorrectionLevel: 'H',
-          type: 'image/png',
-          width: 100,
-        });
-
-        doc.image(qrDataUrl, 50, 700, { width: 60, height: 60 });
-        doc.fontSize(8).text('QR-Code zum Unterschreiben scannen', 50, 765);
-      } catch (qrErr) {
-        console.log('QR code generation skipped');
-      }
+      // Signatur-Link
+      const signatureUrl = `${process.env.NEXT_PUBLIC_APP_URL}/offers/${offer.id}/sign`;
+      doc.fontSize(8).fillColor('#2E7D32').text('📱 Zum Unterschreiben online:', 50, 710);
+      doc.fontSize(8).fillColor('#0066cc').text(signatureUrl, 50, 725);
 
       doc.end();
     } catch (error) {

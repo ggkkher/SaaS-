@@ -68,6 +68,24 @@ export async function PATCH(
       },
     });
 
+    // Update offer totals
+    const allPositions = await prisma.position.findMany({
+      where: { offerId: params.id },
+    });
+
+    const subtotalNet = allPositions.reduce((sum, pos) => sum + pos.totalNet, 0);
+    const taxAmount = subtotalNet * 0.19;
+    const totalGross = subtotalNet + taxAmount;
+
+    await prisma.offer.update({
+      where: { id: params.id },
+      data: {
+        subtotalNet,
+        taxAmount,
+        totalGross,
+      },
+    });
+
     return NextResponse.json({ position, message: 'Position aktualisiert' });
   } catch (error) {
     console.error('Position update error:', error);
@@ -117,6 +135,24 @@ export async function DELETE(
 
     await prisma.position.delete({
       where: { id: params.positionId },
+    });
+
+    // Update offer totals
+    const allPositions = await prisma.position.findMany({
+      where: { offerId: params.id },
+    });
+
+    const subtotalNet = allPositions.reduce((sum, pos) => sum + pos.totalNet, 0);
+    const taxAmount = subtotalNet * 0.19;
+    const totalGross = subtotalNet + taxAmount;
+
+    await prisma.offer.update({
+      where: { id: params.id },
+      data: {
+        subtotalNet,
+        taxAmount,
+        totalGross,
+      },
     });
 
     return NextResponse.json(
