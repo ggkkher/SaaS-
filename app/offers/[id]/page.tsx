@@ -58,6 +58,7 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
   });
   const [amendments, setAmendments] = useState<Offer[]>([]);
   const [isCreatingAmendment, setIsCreatingAmendment] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   useEffect(() => {
     fetchOffer();
@@ -174,6 +175,24 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
     } catch (err: any) {
       setError(err.response?.data?.error || 'Nachtrag konnte nicht erstellt werden');
       setIsCreatingAmendment(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!offer || !offer.clientEmail) {
+      setError('Keine E-Mail-Adresse für den Kunden vorhanden');
+      return;
+    }
+
+    try {
+      setIsSendingEmail(true);
+      await axios.post(`/api/offers/${params.id}/send-email`);
+      setError('');
+      alert('E-Mail erfolgreich versendet!');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'E-Mail konnte nicht versendet werden');
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -580,6 +599,23 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
             >
               ✍️ Unterschrifts-Link
             </Button>
+
+            <Button
+              onClick={handleSendEmail}
+              variant="primary"
+              size="lg"
+              className="w-full mb-3 bg-blue-600 hover:bg-blue-700"
+              isLoading={isSendingEmail}
+              disabled={!offer.clientEmail}
+            >
+              📧 Per Email versenden
+            </Button>
+
+            {!offer.clientEmail && (
+              <p className="text-sm text-gray-500 text-center">
+                Bitte Kunden-Email hinzufügen
+              </p>
+            )}
           </div>
         </div>
       </div>

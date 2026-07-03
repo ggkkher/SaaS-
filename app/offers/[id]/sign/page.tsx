@@ -115,6 +115,14 @@ export default function OfferSignPage({ params }: { params: { id: string } }) {
         signatureUrl: signaturePNG,
       });
 
+      // Sende Bestätigungs-Email
+      try {
+        await axios.post(`/api/offers/${params.id}/send-confirmation-email`);
+      } catch (emailErr) {
+        console.error('Fehler beim Email-Versand:', emailErr);
+        // Nicht als Fehler anzeigen - Unterschrift wurde gespeichert
+      }
+
       setError('');
       alert(
         'Unterschrift erfolgreich gespeichert! Vielen Dank für Ihre Unterschrift.'
