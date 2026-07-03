@@ -21,6 +21,7 @@
     "jose": "^5.10.0",
     "lucide-react": "^0.292.0",
     "next": "^14.0.0",
+    "next-themes": "^0.4.6",
     "nodemailer": "^6.9.0",
     "openai": "^4.24.0",
     "pdfkit": "^0.13.0",
