@@ -73,20 +73,29 @@ export async function PATCH(
       );
     }
 
-    const { clientName, clientEmail, subtotalNet, taxAmount, totalGross } =
+    const { clientName, clientEmail, subtotalNet, taxAmount, totalGross, status, signatureUrl } =
       await request.json();
+
+    const updateData: any = {
+      ...(clientName && { clientName }),
+      ...(clientEmail !== undefined && { clientEmail }),
+      ...(subtotalNet !== undefined && { subtotalNet }),
+      ...(taxAmount !== undefined && { taxAmount }),
+      ...(totalGross !== undefined && { totalGross }),
+      ...(status && { status }),
+      ...(signatureUrl && { signatureUrl }),
+    };
+
+    // Set signedAt timestamp when status changes to 'signed'
+    if (status === 'signed') {
+      updateData.signedAt = new Date();
+    }
 
     const offer = await prisma.offer.update({
       where: {
         id: params.id,
       },
-      data: {
-        ...(clientName && { clientName }),
-        ...(clientEmail !== undefined && { clientEmail }),
-        ...(subtotalNet !== undefined && { subtotalNet }),
-        ...(taxAmount !== undefined && { taxAmount }),
-        ...(totalGross !== undefined && { totalGross }),
-      },
+      data: updateData,
       include: { positions: true },
     });
 

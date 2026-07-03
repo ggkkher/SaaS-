@@ -62,6 +62,12 @@ model Offer {
   signatureUrl    String?
   signaturePdfUrl String?
 
+  // Status Tracking Timestamps
+  sentAt          DateTime?
+  signedAt        DateTime?
+  invoicedAt      DateTime?
+  sentBy          String?   // User ID who sent the offer
+
   // Für Nachträge
   parentOfferId   String?
   parentOffer     Offer?    @relation("OfferAmendments", fields: [parentOfferId], references: [id], onDelete: SetNull)

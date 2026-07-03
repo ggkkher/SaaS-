@@ -73,6 +73,16 @@ export async function POST(
       pdfUrl
     );
 
+    // Update offer mit sentAt und sentBy timestamps
+    await prisma.offer.update({
+      where: { id: params.id },
+      data: {
+        sentAt: new Date(),
+        sentBy: decoded.userId,
+        status: 'sent',
+      },
+    });
+
     return NextResponse.json(
       { message: 'E-Mail erfolgreich versendet' },
       { status: 200 }
