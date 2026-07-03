@@ -59,6 +59,11 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
   const [amendments, setAmendments] = useState<Offer[]>([]);
   const [isCreatingAmendment, setIsCreatingAmendment] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isGettingAISuggestion, setIsGettingAISuggestion] = useState(false);
+  const [aiSuggestion, setAISuggestion] = useState<{
+    suggestedPrice: number;
+    reasoning: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchOffer();
@@ -193,6 +198,41 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
       setError(err.response?.data?.error || 'E-Mail konnte nicht versendet werden');
     } finally {
       setIsSendingEmail(false);
+    }
+  };
+
+  const getAISuggestion = async () => {
+    if (!positionForm.name) {
+      setError('Bitte geben Sie zuerst einen Positionsnamen ein');
+      return;
+    }
+
+    try {
+      setIsGettingAISuggestion(true);
+      const response = await axios.post('/api/ai/suggest-price', {
+        name: positionForm.name,
+        description: positionForm.description,
+        quantity: positionForm.quantity,
+        unit: positionForm.unit,
+        hourlyRate: positionForm.hourlyRate,
+        hours: positionForm.hours,
+      });
+
+      setAISuggestion(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'AI-Vorschlag konnte nicht berechnet werden');
+    } finally {
+      setIsGettingAISuggestion(false);
+    }
+  };
+
+  const applyAISuggestion = () => {
+    if (aiSuggestion) {
+      setPositionForm({
+        ...positionForm,
+        unitPrice: aiSuggestion.suggestedPrice.toFixed(2),
+      });
+      setAISuggestion(null);
     }
   };
 
@@ -461,9 +501,44 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
                             }
                           }}
                         />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={getAISuggestion}
+                          isLoading={isGettingAISuggestion}
+                          title="AI-Preisvorschlag basierend auf Position und Firma Kosten"
+                        >
+                          💡 AI
+                        </Button>
                       </div>
                     </div>
                   </div>
+
+                  {/* AI Suggestion */}
+                  {aiSuggestion && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-semibold text-blue-900 mb-2">
+                        💡 AI Preisvorschlag
+                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-blue-700">
+                          Empfohlener Preis: € {aiSuggestion.suggestedPrice.toFixed(2)}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          onClick={applyAISuggestion}
+                        >
+                          ✓ Übernehmen
+                        </Button>
+                      </div>
+                      <p className="text-xs text-blue-600">
+                        {aiSuggestion.reasoning}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex gap-2">
                     <Button type="submit" variant="primary" size="md" isLoading={isSaving}>
